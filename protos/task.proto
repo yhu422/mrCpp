@@ -1,0 +1,43 @@
+syntax = "proto3";
+package task;
+
+message Empty{}
+
+message Job{
+  repeated string file_list = 1;
+  string output_dir = 2;
+  uint32 n_reduce = 3;
+}
+
+message JobID{
+  uint32 job_id = 1;
+}
+
+message PollJobReply{
+  bool done = 1;
+  bool failed = 2;
+  bool invalid = 3;
+}
+
+message TaskReply{
+  uint32 job_id = 1;
+  uint32 task_id = 2;
+  string file = 3;
+  string output_dir = 4;
+  bool wait = 5;
+  bool is_reduce = 6;
+}
+
+message FinishTaskRequest{
+  uint32 job_id = 1;
+  uint32 task_id = 2;
+  bool is_reduce = 3;
+  bool success = 4;
+}
+
+service MRCoordinator{
+  rpc GetTask(Empty) returns (TaskReply); // [worker] polls for work
+  rpc SubmitJob(Job) returns (JobID); // [client] submit job
+  rpc PollJob(JobID) returns (PollJobReply); // [client] polls for job status
+  rpc FinishTask(FinishTaskRequest) returns(Empty); // [worker] notify the coordinator for completion of job
+}
